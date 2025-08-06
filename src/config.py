@@ -23,7 +23,7 @@ config = {
     'windows': {  # required  when supporting windows game
         'exe': 'Star.exe',
         # 'hwnd_class': 'UnrealWindow', #增加重名检查准确度
-        'interaction': 'Genshin', #支持大多数PC游戏后台点击
+        'interaction': 'PyDirect',
         'can_bit_blt': True,  # default false, opengl games does not support bit_blt
         'bit_blt_render_full': True,
         'check_hdr': True, #当用户开启AutoHDR时候提示用户, 但不禁止使用

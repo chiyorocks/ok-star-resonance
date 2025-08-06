@@ -1,4 +1,7 @@
 import time
+import datetime
+
+from ok import og
 
 from src.tasks.SRTriggerTask import SRTriggerTask
 
@@ -14,7 +17,8 @@ class FishingTask(SRTriggerTask):
         self.last_update_time = None
         self.key_a_pressed = False
         self.key_d_pressed = False
-        
+        self.fish_pos_from_game = 0
+
     def run(self):
         """
         钓鱼任务的主执行循环。
@@ -41,13 +45,13 @@ class FishingTask(SRTriggerTask):
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
                     center = use_boxes[0].center()
-                    self.click_foreground(center[0] / self.width, center[1] / self.height)
+                    self.click(center[0] / self.width, center[1] / self.height)
                 else:
                     self.log_info('没有鱼竿了', notify=True)
                     raise Exception("没有鱼竿了,需要实现买鱼竿")
             else:
                 self.log_info('抛竿', notify=False)
-                self.click_foreground(0.5, 0.5)
+                self.click(0.5, 0.5)
             return True
         return False
 
@@ -55,7 +59,9 @@ class FishingTask(SRTriggerTask):
         """检查鱼上钩的提示，并点击开始收线。"""
         if self.find_one("hint_fishing_click", threshold=0.5):
             self.log_info('鱼上钩了', notify=False)
-            self.click_foreground(0.5, 0.5)
+            self.my_mouse_down()
+            self.last_update_time = time.time()
+            self.pos = 0
             return True
         return False
 
@@ -63,7 +69,7 @@ class FishingTask(SRTriggerTask):
         """捕获鱼后，检查“继续钓鱼”按钮。"""
         if self.ocr(0.79, 0.88, 0.87, 0.93, match='继续钓鱼'):
             self.log_info('点击继续钓鱼', notify=False)
-            self.click_foreground(0.82, 0.90)
+            self.click(0.82, 0.90)
             return True
         return False
 
@@ -71,28 +77,23 @@ class FishingTask(SRTriggerTask):
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
         if self.ocr(0.54, 0.77, 0.62, 0.81, match='鱼线张力'):
-            self.mousedown_foreground(0.5, 0.5)
             # 获取鱼的实际位置
-            hook_box = self.find_one("box_hook", threshold=0.6)
-            if hook_box:
-                fish_pos_from_game = hook_box.center()[0] / self.width - 0.5
-            self._play_the_fish(fish_pos_from_game)
+            if splash_box:=self.find_splash():
+                self.fish_pos_from_game = splash_box[0].center()[0] / (self.width / 2) - 1
+            else: 
+                pass
+            self._play_the_fish(self.fish_pos_from_game)
             return True
         elif self.last_update_time:
             # 如果小游戏未激活，确保松开鼠标和按键。
-            self.mouseup_foreground()
             self._reset_minigame_state()
+            return True
         return False
 
     def _play_the_fish(self, fish_pos: float):
-        """
-        处理溜鱼。
-        
-        :param fish_pos: 鱼的当前位置，范围从 -0.9 到 0.9。
-        """
         delta_time = self._update_time()
         
-        normalized_fish_pos = min(max(fish_pos / 0.9, -1.0), 1.0)
+        normalized_fish_pos = min(max(fish_pos / 0.7, -1.3), 1.3)
 
         self._update_rod_position(delta_time)
         self._update_key_presses(normalized_fish_pos)
@@ -111,31 +112,43 @@ class FishingTask(SRTriggerTask):
         if normalized_fish_pos < self.pos:
             # 鱼在竿左边，竿在屏幕右边松开D键
             if self.pos > 0 and self.key_d_pressed:
-                self.keyup('d'); self.key_d_pressed = False
+                self.log_info('松开D', notify=False)
+                self.send_key_up('d')
+                self.key_d_pressed = False
             # 鱼在竿左边，竿在屏幕左边按下A键
-            if self.pos <= 0 and self.key_d_pressed:
-                self.keydown('a'); self.key_a_pressed = True
+            if self.pos <= 0 and not self.key_a_pressed:
+                self.log_info('按下A', notify=False)
+                self.send_key_down('a')
+                self.key_a_pressed = True
         else: 
             # 鱼在竿右边，竿在屏幕左边松开A键
             if self.pos < 0 and self.key_a_pressed:
-                self.keyup('a'); self.key_a_pressed = False
+                self.log_info('松开A', notify=False)
+                self.send_key_up('a')
+                self.key_a_pressed = False
             # 鱼在竿右边，竿在屏幕右边按下D键
-            if self.pos >= 0 and self.key_a_pressed:
-                self.keydown('d'); self.key_d_pressed = True
+            if self.pos >= 0 and not self.key_d_pressed:
+                self.log_info('按下D', notify=False)
+                self.send_key_down('d')
+                self.key_d_pressed = True
 
     def _update_rod_position(self, delta_time: float):
         """更新鱼竿的位置。"""
         # 未按任何键时，向中心点漂移
         if not self.key_a_pressed and not self.key_d_pressed:
-            if self.pos > 0: self.pos -= 1.0 * delta_time
-            elif self.pos < 0: self.pos += 1.0 * delta_time
+            if self.pos > 0: 
+                self.pos -= 1.0 * delta_time
+                if self.pos < 0: self.pos = 0
+            else : 
+                self.pos += 1.0 * delta_time
+                if self.pos > 0: self.pos = 0
         
         # 当按下 'A' 键且 pos < 0 时，向 -1 移动
-        if self.key_a_pressed and self.pos < 0:
+        if self.key_a_pressed and self.pos <= 0:
             self.pos -= 0.5 * delta_time
             
         # 当按下 'D' 键且 pos > 0 时，向 1 移动
-        if self.key_d_pressed and self.pos > 0:
+        if self.key_d_pressed and self.pos >= 0:
             self.pos += 0.5 * delta_time
             
         # 将位置限制在 [-1, 1] 的范围内
@@ -143,10 +156,34 @@ class FishingTask(SRTriggerTask):
     
     def _reset_minigame_state(self):
         """在拉鱼结束时重置溜鱼状态。"""
+        self.log_info('重置溜鱼', notify=False)
+        self.my_mouse_up()
         if self.key_a_pressed:
-            self.keyup('a')
+            self.send_key_up('a')
             self.key_a_pressed = False
         if self.key_d_pressed:
-            self.keyup('d')
+            self.send_key_up('d')
             self.key_d_pressed = False
         self.last_update_time = None
+        self.fish_pos_from_game = 0
+
+
+    def find_splash(self, threshold=0.7):
+        """
+        Main function to load ONNX model, perform inference, draw bounding boxes, and display the output image.
+
+        Args:
+            onnx_model (str): Path to the ONNX model.
+            input_image (ndarray): Path to the input image.
+
+        Returns:
+            list: List of dictionaries containing detection information such as class_id, class_name, confidence, etc.
+        """
+        # Load the ONNX model
+        ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
+
+        for box in ret:
+            box.y += box.height * 1 / 3
+            box.height = 1
+        self.draw_boxes("splash", ret)
+        return ret
