@@ -22,6 +22,7 @@ class FishingTask(SRTriggerTask):
         self.last_start_time = None
         self.last_reeling_time = None
         self.last_continue_time = None
+        self.last_switch_time = None
 
     def run(self):
         """
@@ -93,6 +94,14 @@ class FishingTask(SRTriggerTask):
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
         if self.ocr(0.54, 0.77, 0.62, 0.81, match='鱼线张力'):
+            now = time.time()
+            # 连点以提高钓鱼容错
+            switch_time = 0.1
+            if self.is_mouse_down:
+                switch_time *= 2
+            if self.last_switch_time is None or now - self.last_switch_time > switch_time:
+                self.my_mouse_switch()
+                self.last_switch_time = now
             # 获取鱼的实际位置
             if splash_box:=self.find_splash():
                 self.fish_pos_from_game = splash_box[0].center()[0] / (self.width / 2) - 1
