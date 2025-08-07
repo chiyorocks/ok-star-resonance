@@ -19,6 +19,10 @@ class FishingTask(SRTriggerTask):
         self.key_d_pressed = False
         self.fish_pos_from_game = 0
 
+        self.last_start_time = None
+        self.last_reeling_time = None
+        self.last_continue_time = None
+
     def run(self):
         """
         钓鱼任务的主执行循环。
@@ -35,13 +39,16 @@ class FishingTask(SRTriggerTask):
 
     def _handle_start_and_rod_change(self) -> bool:
         """检查初始的钓鱼界面，以便抛竿或更换损坏的鱼竿。"""
+        now = time.time()
+        if self.last_start_time is not None and now - self.last_start_time <= 3:
+            return False
         if self.ocr(0.56, 0.91, 0.60, 0.96, match='等级'):
+            self.sleep(0.5)
             # 检查鱼竿是否损坏
             if self.ocr(0.90, 0.92, 0.96, 0.96, match='添加鱼竿'):
                 self.log_info('更换鱼竿', notify=False)
                 self.send_key('m')
-                self.sleep(0.5)
-                use_boxes = self.ocr(box=None, match="使用", log=False, threshold=0.8)
+                use_boxes = self.wait_ocr(box=None, match="使用", log=False, threshold=0.8, time_out=3)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
                     center = use_boxes[0].center()
@@ -52,24 +59,33 @@ class FishingTask(SRTriggerTask):
             else:
                 self.log_info('抛竿', notify=False)
                 self.click(0.5, 0.5)
+                self.last_start_time = now
             return True
         return False
 
     def _handle_hook_fish(self) -> bool:
         """检查鱼上钩的提示，并点击开始收线。"""
+        now = time.time()
+        if self.last_reeling_time is not None and now - self.last_reeling_time <= 3:
+            return False
         if self.find_one("hint_fishing_click", threshold=0.5):
             self.log_info('鱼上钩了', notify=False)
             self.my_mouse_down()
             self.last_update_time = time.time()
             self.pos = 0
+            self.last_reeling_time = now
             return True
         return False
 
     def _handle_continue_fishing(self) -> bool:
-        """捕获鱼后，检查“继续钓鱼”按钮。"""
+        # 每秒最多点击一次继续钓鱼
+        now = time.time()
+        if self.last_continue_time is not None and now - self.last_continue_time <= 1:
+            return False
         if self.ocr(0.79, 0.88, 0.87, 0.93, match='继续钓鱼'):
             self.log_info('点击继续钓鱼', notify=False)
             self.click(0.82, 0.90)
+            self.last_continue_time = now
             return True
         return False
 
@@ -169,16 +185,6 @@ class FishingTask(SRTriggerTask):
 
 
     def find_splash(self, threshold=0.7):
-        """
-        Main function to load ONNX model, perform inference, draw bounding boxes, and display the output image.
-
-        Args:
-            onnx_model (str): Path to the ONNX model.
-            input_image (ndarray): Path to the input image.
-
-        Returns:
-            list: List of dictionaries containing detection information such as class_id, class_name, confidence, etc.
-        """
         # Load the ONNX model
         ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
 
