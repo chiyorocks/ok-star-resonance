@@ -47,7 +47,7 @@ config = {
     },
     'links': {
             'default': {
-                'github': 'https://github.com/sanheiii/ok-star-resonanse',
+                'github': 'https://github.com/ok-oldking/ok-script',
             }
         },
     'screenshots_folder': "screenshots", #截图存放目录, 每次重新启动会清空目录

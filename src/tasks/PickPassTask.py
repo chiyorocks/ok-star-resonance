@@ -11,6 +11,6 @@ class PickPassTask(SRTriggerTask):
         self.trigger_count = 0
 
     def run(self):
-        if self.ocr(0.44, 0.94, 0.56, 1, match='点击空白处关闭'):
-            self.click_foreground(0.8, 0.75)
+        if box:=self.ocr(0.44, 0.94, 0.56, 1, match='点击空白处关闭'):
+            self.click(box)
         return True
