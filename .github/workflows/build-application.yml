@@ -1,0 +1,30 @@
+name: Build Application
+
+on: 
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build with PyAppify Action
+        id: build-app
+        uses: ok-oldking/pyappify-action@master
+        with:
+          version: 'v1.0.18'
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: pyappify_dist/*
