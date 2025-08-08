@@ -1,5 +1,6 @@
 import time
 import datetime
+import re
 
 from ok import og
 
@@ -43,13 +44,13 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_start_time is not None and now - self.last_start_time <= 3:
             return False
-        if self.ocr(0.56, 0.91, 0.60, 0.96, match='等级'):
+        if self.ocr(0.56, 0.91, 0.60, 0.96, match=re.compile('等级')):
             self.sleep(0.5)
             # 检查鱼竿是否损坏
-            if self.ocr(0.90, 0.92, 0.96, 0.96, match='添加鱼竿'):
+            if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
                 self.log_info('更换鱼竿', notify=False)
                 self.send_key('m')
-                use_boxes = self.wait_ocr(box=None, match="使用", log=False, threshold=0.8, time_out=3)
+                use_boxes = self.wait_ocr(box=None, match=re.compile('使用'), log=False, threshold=0.8, time_out=3)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
                     center = use_boxes[0].center()
@@ -83,25 +84,25 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_continue_time is not None and now - self.last_continue_time <= 1:
             return False
-        if self.ocr(0.79, 0.88, 0.87, 0.93, match='继续钓鱼'):
+        if self.ocr(0.79, 0.88, 0.87, 0.93, match=re.compile('继续钓鱼')):
             self.log_info('点击继续钓鱼', notify=False)
             self.click(0.82, 0.90)
-            self.last_continue_time = now
             return True
         return False
 
     def _handle_minigame(self) -> bool:
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
-        if self.ocr(0.54, 0.77, 0.62, 0.81, match='鱼线张力'):
-            now = time.time()
-            # 连点以提高钓鱼容错
-            switch_time = 0.1
-            if self.is_mouse_down:
-                switch_time *= 2
-            if self.last_switch_time is None or now - self.last_switch_time > switch_time:
-                self.my_mouse_switch()
-                self.last_switch_time = now
+        if self.ocr(0.54, 0.77, 0.62, 0.81, match=re.compile('鱼线张力')):
+            if self.ocr(0.51, 0.80, 0.69, 0.91, match=re.compile("停止拉竿")):
+                now = time.time()
+                # 连点以提高钓鱼容错
+                switch_time = 0.1
+                if self.last_switch_time is None or now - self.last_switch_time > switch_time:
+                    self.my_mouse_switch()
+                    self.last_switch_time = now
+            else:
+                self.my_mouse_down()
             # 获取鱼的实际位置
             if splash_box:=self.find_splash():
                 self.fish_pos_from_game = splash_box[0].center()[0] / (self.width / 2) - 1
@@ -193,7 +194,7 @@ class FishingTask(SRTriggerTask):
         self.fish_pos_from_game = 0
 
 
-    def find_splash(self, threshold=0.7):
+    def find_splash(self, threshold=0.5):
         # Load the ONNX model
         ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
 
