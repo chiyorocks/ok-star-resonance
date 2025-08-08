@@ -1,8 +1,8 @@
-name: "ok-star-resonanse"
+name: "ok-star-resonance"
 uac: true
 profiles:
   - name: "Release"
-    git_url: "https://github.com/sanheiii/ok-star-resonanse"
+    git_url: "https://github.com/sanheiii/ok-star-resonance"
     admin: true
     main_script: "main.py"
     requires_python: "3.12"
