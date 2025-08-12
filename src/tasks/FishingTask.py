@@ -121,7 +121,7 @@ class FishingTask(SRTriggerTask):
                 # 连点以提高钓鱼容错
                 switch_time = self.get_config_value('spam_click_release_time')
                 ratio = self.get_config_value('spam_click_ratio')
-                if self.is_mouse_down():
+                if self.is_mouse_down:
                     switch_time *= ratio
                 if self.last_switch_time is None or now - self.last_switch_time > switch_time:
                     self.my_mouse_switch()
