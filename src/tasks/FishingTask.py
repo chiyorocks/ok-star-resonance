@@ -12,7 +12,22 @@ class FishingTask(SRTriggerTask):
         super().__init__(*args, **kwargs)
         self.name = "自动钓鱼"
         self.description = "与钓鱼点交互后自动钓鱼"
+        
+        self.settings = [
+            {'key': 'ignore_tension_spam_click', 'label': '无视鱼线张力直接连点（减慢拉线速度,减少偶发的断线）', 'default': False},
+            {'key': 'spam_click_ratio', 'label': '连点时按下/松开时间比', 'default': 1.},
+            {'key': 'spam_click_release_time', 'label': '连点时每次松开的时间', 'default': .1},
+            {'key': 'switch_rod_key', 'label': '切换鱼竿按键', 'default': "m"}
+        ]
+        
+        self.default_config.update({
+            setting['label']: setting['default'] for setting in self.settings
+        })
+        
+        self._settings_map = {s['key']: s for s in self.settings}
+        
         self.trigger_count = 0
+
         # "溜鱼"小游戏的状态变量
         self.pos = 0
         self.last_update_time = None
@@ -24,6 +39,12 @@ class FishingTask(SRTriggerTask):
         self.last_reeling_time = None
         self.last_continue_time = None
         self.last_switch_time = None
+
+    def get_config_value(self, key: str):
+        setting = self._settings_map.get(key)
+        if setting:
+            return self.config.get(setting['label'], setting['default'])
+        return None
 
     def run(self):
         """
@@ -49,7 +70,7 @@ class FishingTask(SRTriggerTask):
             # 检查鱼竿是否损坏
             if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
                 self.log_info('更换鱼竿', notify=False)
-                self.send_key('m')
+                self.send_key(self.get_config_value('switch_rod_key'))
                 use_boxes = self.wait_ocr(box=None, match=re.compile('使用'), log=False, threshold=0.8, time_out=3)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
@@ -94,10 +115,13 @@ class FishingTask(SRTriggerTask):
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
         if self.ocr(0.54, 0.77, 0.62, 0.81, match=re.compile('鱼线张力')):
-            if self.ocr(0.51, 0.80, 0.69, 0.91, match=re.compile("停止拉竿")):
+            if self.get_config_value('ignore_tension_spam_click') or self.ocr(0.51, 0.80, 0.69, 0.91, match=re.compile("停止拉竿")):
                 now = time.time()
                 # 连点以提高钓鱼容错
-                switch_time = 0.1
+                switch_time = self.get_config_value('spam_click_release_time')
+                ratio = self.get_config_value('spam_click_ratio')
+                if self.is_mouse_down():
+                    switch_time *= ratio
                 if self.last_switch_time is None or now - self.last_switch_time > switch_time:
                     self.my_mouse_switch()
                     self.last_switch_time = now
