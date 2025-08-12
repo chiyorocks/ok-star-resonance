@@ -71,13 +71,14 @@ class FishingTask(SRTriggerTask):
             if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
                 self.log_info('更换鱼竿', notify=False)
                 self.send_key(self.get_config_value('switch_rod_key'))
-                use_boxes = self.wait_ocr(box=None, match=re.compile('使用'), log=False, threshold=0.8, time_out=3)
+                use_boxes = self.wait_ocr(box=None, match=re.compile('使用'), log=False, threshold=0.8, time_out=15)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
                     center = use_boxes[0].center()
                     self.click(center[0] / self.width, center[1] / self.height)
                 else:
                     self.log_info('没有鱼竿了', notify=True)
+                    self.screenshot()
                     raise Exception("没有鱼竿了,需要实现买鱼竿")
             else:
                 self.log_info('抛竿', notify=False)
@@ -162,23 +163,19 @@ class FishingTask(SRTriggerTask):
         if normalized_fish_pos < self.pos:
             # 鱼在竿左边，竿在屏幕右边松开D键
             if self.pos > 0 and self.key_d_pressed:
-                self.log_info('松开D', notify=False)
                 self.send_key_up('d')
                 self.key_d_pressed = False
             # 鱼在竿左边，竿在屏幕左边按下A键
             if self.pos <= 0 and not self.key_a_pressed:
-                self.log_info('按下A', notify=False)
                 self.send_key_down('a')
                 self.key_a_pressed = True
         else: 
             # 鱼在竿右边，竿在屏幕左边松开A键
             if self.pos < 0 and self.key_a_pressed:
-                self.log_info('松开A', notify=False)
                 self.send_key_up('a')
                 self.key_a_pressed = False
             # 鱼在竿右边，竿在屏幕右边按下D键
             if self.pos >= 0 and not self.key_d_pressed:
-                self.log_info('按下D', notify=False)
                 self.send_key_down('d')
                 self.key_d_pressed = True
 
