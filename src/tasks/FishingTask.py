@@ -143,7 +143,7 @@ class FishingTask(SRTriggerTask):
 
     def _play_the_fish(self, fish_pos: float):
         delta_time = self._update_time()
-        
+
         normalized_fish_pos = min(max(fish_pos / 0.7, -1.3), 1.3)
 
         self._update_rod_position(delta_time)
@@ -160,6 +160,8 @@ class FishingTask(SRTriggerTask):
 
     def _update_key_presses(self, normalized_fish_pos: float):
         """根据鱼的位置决定按下或释放哪个按键。"""
+        if abs(self.pos - normalized_fish_pos) < 0.1:
+            return
         if normalized_fish_pos < self.pos:
             # 鱼在竿左边，竿在屏幕右边松开D键
             if self.pos > 0 and self.key_d_pressed:
@@ -214,13 +216,18 @@ class FishingTask(SRTriggerTask):
         self.last_update_time = None
         self.fish_pos_from_game = 0
 
-
     def find_splash(self, threshold=0.5):
-        # Load the ONNX model
-        ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
+        h, w = self.frame.shape[:2]
+        y_start = int(h * 0.28)
+        y_end = int(h * 0.82)
+
+        cropped_frame = self.frame[y_start:y_end, :]
+
+        ret = og.my_app.yolo_detect(cropped_frame, threshold=threshold, label=0)
 
         for box in ret:
+            box.y += y_start
             box.y += box.height * 1 / 3
             box.height = 1
-        self.draw_boxes("splash", ret)
+
         return ret
