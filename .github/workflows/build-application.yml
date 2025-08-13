@@ -1,8 +1,9 @@
 name: Build Application And Release
 
-on: 
+on:
   push:
-    branches: [main]
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 permissions: write-all
