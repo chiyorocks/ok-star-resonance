@@ -5,11 +5,35 @@
       "height": 1080,
       "id": 0,
       "file_name": "images/0.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "id": 1,
+      "file_name": "images/1.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "id": 2,
+      "file_name": "images/2.png"
     }
   ],
   "categories": [
     {
       "id": 0,
+      "name": "box_fishing_icon"
+    },
+    {
+      "id": 1,
+      "name": "box_fishing_level"
+    },
+    {
+      "id": 2,
+      "name": "box_stop_pull"
+    },
+    {
+      "id": 3,
       "name": "hint_fishing_click"
     }
   ],
@@ -17,7 +41,7 @@
     {
       "id": 0,
       "image_id": 0,
-      "category_id": 0,
+      "category_id": 3,
       "segmentation": [],
       "bbox": [
         932.101993662272,
@@ -28,6 +52,51 @@
       "ignore": 0,
       "iscrowd": 0,
       "area": 6541.1464662609615
+    },
+    {
+      "id": 1,
+      "image_id": 1,
+      "category_id": 1,
+      "segmentation": [],
+      "bbox": [
+        1104.0084509785002,
+        990.9605852486264,
+        38.745184661685606,
+        21.98044129845623
+      ],
+      "ignore": 0,
+      "iscrowd": 0,
+      "area": 851.6362570540272
+    },
+    {
+      "id": 2,
+      "image_id": 2,
+      "category_id": 0,
+      "segmentation": [],
+      "bbox": [
+        656.4443867241313,
+        878.0436404661662,
+        37.68563646803591,
+        41.55082995193706
+      ],
+      "ignore": 0,
+      "iscrowd": 0,
+      "area": 1565.869472513878
+    },
+    {
+      "id": 3,
+      "image_id": 2,
+      "category_id": 2,
+      "segmentation": [],
+      "bbox": [
+        1031.3681546625403,
+        923.4596639020042,
+        130.45028008166287,
+        28.988951129258496
+      ],
+      "ignore": 0,
+      "iscrowd": 0,
+      "area": 3781.616794085408
     }
   ],
   "info": {
@@ -36,6 +105,6 @@
     "description": "",
     "contributor": "Label Studio",
     "url": "",
-    "date_created": "2025-08-05 02:37:26.617763"
+    "date_created": "2025-08-14 19:44:56.748923"
   }
 }

@@ -1,6 +1,7 @@
 import time
 import datetime
 import re
+import threading
 
 from ok import og
 
@@ -15,8 +16,6 @@ class FishingTask(SRTriggerTask):
         
         self.settings = [
             {'key': 'ignore_tension_spam_click', 'label': '无视鱼线张力直接连点（减慢拉线速度,减少偶发的断线）', 'default': False},
-            {'key': 'spam_click_ratio', 'label': '连点时按下/松开时间比', 'default': 1.},
-            {'key': 'spam_click_release_time', 'label': '连点时每次松开的时间', 'default': .1},
             {'key': 'switch_rod_key', 'label': '切换鱼竿按键', 'default': "m"}
         ]
         
@@ -40,11 +39,24 @@ class FishingTask(SRTriggerTask):
         self.last_continue_time = None
         self.last_switch_time = None
 
+        # 用于异步查找水花
+        self._splash_finder_thread = None
+        self._fish_pos_lock = threading.Lock()
+
     def get_config_value(self, key: str):
         setting = self._settings_map.get(key)
         if setting:
             return self.config.get(setting['label'], setting['default'])
         return None
+
+    def _splash_finder_worker(self):
+        """
+        异步查找水花的任务。
+        """
+        splash_box = self.find_splash()
+        if splash_box:
+            with self._fish_pos_lock:
+                self.fish_pos_from_game = splash_box[0].center()[0] / (self.width / 2) - 1 + 0.04
 
     def run(self):
         """
@@ -65,7 +77,7 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_start_time is not None and now - self.last_start_time <= 3:
             return False
-        if self.ocr(0.56, 0.91, 0.60, 0.96, match=re.compile('等级')):
+        if self.find_one("box_fishing_level", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96), threshold=0.5):
             self.sleep(0.5)
             # 检查鱼竿是否损坏
             if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
@@ -115,25 +127,19 @@ class FishingTask(SRTriggerTask):
     def _handle_minigame(self) -> bool:
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
-        if self.ocr(0.54, 0.77, 0.62, 0.81, match=re.compile('鱼线张力')):
-            if self.get_config_value('ignore_tension_spam_click') or self.ocr(0.51, 0.80, 0.69, 0.91, match=re.compile("停止拉竿")):
-                now = time.time()
-                # 连点以提高钓鱼容错
-                switch_time = self.get_config_value('spam_click_release_time')
-                ratio = self.get_config_value('spam_click_ratio')
-                if self.is_mouse_down:
-                    switch_time *= ratio
-                if self.last_switch_time is None or now - self.last_switch_time > switch_time:
-                    self.my_mouse_switch()
-                    self.last_switch_time = now
+        if self.find_one("box_fishing_icon", box=self.box_of_screen(0.33, 0.80, 0.37, 0.87) , threshold=0.5):
+            if self.get_config_value('ignore_tension_spam_click') or self.find_one("box_stop_pull", box=self.box_of_screen(0.50, 0.75, 0.70, 0.92), threshold=0.5):
+                self.my_mouse_switch()
             else:
                 self.my_mouse_down()
             # 获取鱼的实际位置
-            if splash_box:=self.find_splash():
-                self.fish_pos_from_game = splash_box[0].center()[0] / (self.width / 2) - 1
-            else: 
-                pass
-            self._play_the_fish(self.fish_pos_from_game)
+            if self._splash_finder_thread is None or not self._splash_finder_thread.is_alive():
+                self._splash_finder_thread = threading.Thread(target=self._splash_finder_worker)
+                self._splash_finder_thread.start()
+            fish_pos_for_minigame = 0
+            with self._fish_pos_lock:
+                fish_pos_for_minigame = self.fish_pos_from_game
+            self._play_the_fish(fish_pos_for_minigame)
             return True
         elif self.last_update_time:
             # 如果小游戏未激活，确保松开鼠标和按键。
@@ -160,7 +166,7 @@ class FishingTask(SRTriggerTask):
 
     def _update_key_presses(self, normalized_fish_pos: float):
         """根据鱼的位置决定按下或释放哪个按键。"""
-        if abs(self.pos - normalized_fish_pos) < 0.1:
+        if abs(self.pos - normalized_fish_pos) < 0.06:
             return
         if normalized_fish_pos < self.pos:
             # 鱼在竿左边，竿在屏幕右边松开D键
@@ -217,17 +223,10 @@ class FishingTask(SRTriggerTask):
         self.fish_pos_from_game = 0
 
     def find_splash(self, threshold=0.5):
-        h, w = self.frame.shape[:2]
-        y_start = int(h * 0.28)
-        y_end = int(h * 0.82)
-
-        cropped_frame = self.frame[y_start:y_end, :]
-
-        ret = og.my_app.yolo_detect(cropped_frame, threshold=threshold, label=0)
+        ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
 
         for box in ret:
-            box.y += y_start
             box.y += box.height * 1 / 3
             box.height = 1
-
+        self.draw_boxes("splash", ret)
         return ret
