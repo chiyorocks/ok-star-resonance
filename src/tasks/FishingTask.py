@@ -77,7 +77,7 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_start_time is not None and now - self.last_start_time <= 3:
             return False
-        if self.find_one("box_fishing_level", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96), threshold=0.5):
+        if self.find_one("box_fishing_level", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96)):
             self.sleep(0.5)
             # 检查鱼竿是否损坏
             if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
@@ -121,6 +121,7 @@ class FishingTask(SRTriggerTask):
         if self.ocr(0.79, 0.88, 0.87, 0.93, match=re.compile('继续钓鱼')):
             self.log_info('点击继续钓鱼', notify=False)
             self.click(0.82, 0.90)
+            self.last_continue_time = now
             return True
         return False
 
