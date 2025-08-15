@@ -127,7 +127,7 @@ class FishingTask(SRTriggerTask):
     def _handle_minigame(self) -> bool:
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
-        if self.find_one("box_fishing_icon", box=self.box_of_screen(0.33, 0.80, 0.37, 0.87) , threshold=0.5):
+        if self.find_one("box_fishing_icon", box=self.box_of_screen(0.33, 0.80, 0.37, 0.87)):
             if self.get_config_value('ignore_tension_spam_click') or self.find_one("box_stop_pull", box=self.box_of_screen(0.50, 0.75, 0.70, 0.92), threshold=0.5):
                 self.my_mouse_switch()
             else:

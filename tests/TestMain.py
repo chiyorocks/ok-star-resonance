@@ -1,4 +1,5 @@
 import unittest
+import re
 
 from src.config import config
 from ok.test.TaskTestCase import TaskTestCase
@@ -14,6 +15,7 @@ class TestGeneratedTasks(TaskTestCase):
     注意: 您必须提供 'tests/images/' 文件夹下的截图才能使这些测试通过。
     """
 
+    task_class = FishingTask
     config = config
 
     # --- PickPassTask Tests ---
@@ -103,16 +105,11 @@ class TestGeneratedTasks(TaskTestCase):
     #     self.assertGreater(len(texts), 0, "未能识别到'鱼线张力'")
     #     self.assertEqual(texts[0].name, '鱼线张力')
 
-    def test_fishing_hook_box_feature(self):
-        """
-        测试 FishingTask: 在收线小游戏中识别鱼的图标。
-        """
-        self.set_task(FishingTask)
-        # 需要一张显示了收线小游戏界面的截图
-        self.set_image('tests/images/fishing_minigame.png')
-        # 任务中的调用: self.find_one("box_hook", threshold=0.6)
-        feature = self.task.find_one("box_hook", threshold=0.3)
-        self.assertIsNotNone(feature, "未能识别到收线小游戏中的鱼图标 'box_hook'")
+    def test_fishing_contiue(self):
+        self.set_image('tests/images/fishing_continue2.png')
+        fishing_icon = self.task.find_one("box_fishing_icon", box=self.task.box_of_screen(0.33, 0.80, 0.37, 0.87))
+        self.assertEqual(fishing_icon, None)
+
 
 
 if __name__ == '__main__':
