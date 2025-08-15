@@ -20,7 +20,7 @@
 ### 下载
 
 * [GitHub下载](https://github.com/sanheiii/ok-star-resonance/releases)
-* [夸克网盘](https://pan.quark.cn/s/a1052cec4d13)
+* [夸克网盘](https://pan.quark.cn/s/53ef87577da9?pwd=nVL9)
 
 ### 特性
 
