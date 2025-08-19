@@ -66,5 +66,6 @@ config = {
     'trigger_tasks':[
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.PickPassTask", "PickPassTask"],
+        ["src.tasks.GatherTask", "GatherTask"],
     ]
 }

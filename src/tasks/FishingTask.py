@@ -43,12 +43,6 @@ class FishingTask(SRTriggerTask):
         self._splash_finder_thread = None
         self._fish_pos_lock = threading.Lock()
 
-    def get_config_value(self, key: str):
-        setting = self._settings_map.get(key)
-        if setting:
-            return self.config.get(setting['label'], setting['default'])
-        return None
-
     def _splash_finder_worker(self):
         """
         异步查找水花的任务。

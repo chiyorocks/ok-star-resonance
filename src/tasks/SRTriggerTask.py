@@ -28,3 +28,9 @@ class SRTriggerTask(TriggerTask):
         else:
             self.my_mouse_down()
 
+    def get_config_value(self, key: str):
+        setting = self._settings_map.get(key)
+        if setting:
+            return self.config.get(setting['label'], setting['default'])
+        return None
+
