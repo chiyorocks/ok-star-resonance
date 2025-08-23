@@ -67,5 +67,6 @@ config = {
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.PickPassTask", "PickPassTask"],
         ["src.tasks.GatherTask", "GatherTask"],
+        ["src.tasks.StormBlade.LaidoTask", "LaidoTask"]
     ]
 }
