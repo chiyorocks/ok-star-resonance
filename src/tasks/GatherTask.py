@@ -1,7 +1,7 @@
 import re
 import time
 
-from src.tasks.SRTriggerTask import SRTriggerTask, mouse
+from src.tasks.SRTriggerTask import SRTriggerTask
 
 
 class GatherTask(SRTriggerTask):
@@ -52,5 +52,5 @@ class GatherTask(SRTriggerTask):
                 self.run_interval = 5.5
                 break
             else:
-                mouse.scroll(0, 120)
+                self.scroll(self.width_of_screen(0.5), self.height_of_screen(0.5), 120)
         return

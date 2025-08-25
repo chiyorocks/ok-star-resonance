@@ -100,7 +100,7 @@ class FishingTask(SRTriggerTask):
             return False
         if self.find_one("hint_fishing_click", threshold=0.5):
             self.log_info('鱼上钩了', notify=False)
-            self.my_mouse_down()
+            self.my_mouse_down(0.5, 0.5)
             self.last_update_time = time.time()
             self.pos = 0
             self.last_reeling_time = now
@@ -126,7 +126,7 @@ class FishingTask(SRTriggerTask):
             if self.get_config_value('ignore_tension_spam_click') or self.find_one("box_stop_pull", box=self.box_of_screen(0.50, 0.75, 0.70, 0.92), threshold=0.5):
                 self.my_mouse_switch()
             else:
-                self.my_mouse_down()
+                self.my_mouse_down(0.5, 0.5)
             # 获取鱼的实际位置
             if self._splash_finder_thread is None or not self._splash_finder_thread.is_alive():
                 self._splash_finder_thread = threading.Thread(target=self._splash_finder_worker)
@@ -219,9 +219,7 @@ class FishingTask(SRTriggerTask):
 
     def find_splash(self, threshold=0.5):
         ret = og.my_app.yolo_detect(self.frame, threshold=threshold, label=0)
-
-        for box in ret:
-            box.y += box.height * 1 / 3
-            box.height = 1
-        self.draw_boxes("splash", ret)
+        # for box in ret:
+        #     self.log_info(box, notify=False)
+        #     self.screenshot('splash', show_box=True, frame_box=box)
         return ret
