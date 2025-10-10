@@ -21,9 +21,9 @@ config = {
         }
     },
     'windows': {  # required  when supporting windows game
-        'exe': 'Star.exe',
+        'exe': ['Star.exe', 'BPSR.exe', 'BPSR_STEAM.exe'],
         # 'hwnd_class': 'UnrealWindow', #增加重名检查准确度
-        'interaction': 'PyDirect',
+        'interaction': 'Pynput',
         'can_bit_blt': True,  # default false, opengl games does not support bit_blt
         'bit_blt_render_full': True,
         'check_hdr': True, #当用户开启AutoHDR时候提示用户, 但不禁止使用
@@ -66,7 +66,6 @@ config = {
     'trigger_tasks':[
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.PickPassTask", "PickPassTask"],
-        ["src.tasks.GatherTask", "GatherTask"],
-        ["src.tasks.StormBlade.LaidoTask", "LaidoTask"]
+        ["src.tasks.GatherTask", "GatherTask"]
     ]
 }

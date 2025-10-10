@@ -17,23 +17,37 @@
       "height": 1080,
       "id": 2,
       "file_name": "images/2.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "id": 3,
+      "file_name": "images/3.png"
     }
   ],
   "categories": [
     {
       "id": 0,
-      "name": "box_fishing_icon"
+      "name": "box_boss_hp_end"
     },
     {
       "id": 1,
-      "name": "box_fishing_level"
+      "name": "box_boss_hp_start"
     },
     {
       "id": 2,
-      "name": "box_stop_pull"
+      "name": "box_fishing_icon"
     },
     {
       "id": 3,
+      "name": "box_fishing_level"
+    },
+    {
+      "id": 4,
+      "name": "box_stop_pull"
+    },
+    {
+      "id": 5,
       "name": "hint_fishing_click"
     }
   ],
@@ -41,7 +55,7 @@
     {
       "id": 0,
       "image_id": 0,
-      "category_id": 3,
+      "category_id": 5,
       "segmentation": [],
       "bbox": [
         932.101993662272,
@@ -56,7 +70,7 @@
     {
       "id": 1,
       "image_id": 1,
-      "category_id": 1,
+      "category_id": 3,
       "segmentation": [],
       "bbox": [
         1104.0084509785002,
@@ -71,7 +85,7 @@
     {
       "id": 2,
       "image_id": 2,
-      "category_id": 0,
+      "category_id": 2,
       "segmentation": [],
       "bbox": [
         656.4443867241313,
@@ -86,7 +100,7 @@
     {
       "id": 3,
       "image_id": 2,
-      "category_id": 2,
+      "category_id": 4,
       "segmentation": [],
       "bbox": [
         1031.3681546625403,
@@ -97,6 +111,36 @@
       "ignore": 0,
       "iscrowd": 0,
       "area": 3781.616794085408
+    },
+    {
+      "id": 4,
+      "image_id": 3,
+      "category_id": 1,
+      "segmentation": [],
+      "bbox": [
+        737.1030039018298,
+        50.93346262915782,
+        34.727360883516546,
+        10.10250498429576
+      ],
+      "ignore": 0,
+      "iscrowd": 0,
+      "area": 350.8333364171635
+    },
+    {
+      "id": 5,
+      "image_id": 3,
+      "category_id": 0,
+      "segmentation": [],
+      "bbox": [
+        1154.2522722117094,
+        50.512524921478835,
+        29.255170683689677,
+        10.94438039965376
+      ],
+      "ignore": 0,
+      "iscrowd": 0,
+      "area": 320.1797166190986
     }
   ],
   "info": {
@@ -105,6 +149,6 @@
     "description": "",
     "contributor": "Label Studio",
     "url": "",
-    "date_created": "2025-08-14 19:44:56.748923"
+    "date_created": "2025-09-21 20:09:49.881421"
   }
 }
