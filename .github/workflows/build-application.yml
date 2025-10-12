@@ -23,7 +23,7 @@ jobs:
         id: build-app
         uses: ok-oldking/pyappify-action@master
         with:
-          version: 'v1.0.29'
+          version: 'v1.0.30'
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
