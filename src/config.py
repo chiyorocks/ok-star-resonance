@@ -37,7 +37,7 @@ config = {
         }
     },
     'windows': {  # required  when supporting windows game
-        'exe': ['Star.exe', 'BPSR.exe', 'BPSR_STEAM.exe', 'parsecd.exe'],
+        'exe': ['Star.exe', 'BPSR.exe', 'BPSR_STEAM.exe'],
         # 'hwnd_class': 'UnrealWindow', #增加重名检查准确度
         'interaction': 'Pynput',
         'can_bit_blt': True,  # default false, opengl games does not support bit_blt
@@ -67,7 +67,7 @@ config = {
             }
         },
     'screenshots_folder': "screenshots", #截图存放目录, 每次重新启动会清空目录
-    'gui_title': 'hello-world',  # Optional
+    'gui_title': 'ok-star-resonance',  # Optional
     'template_matching': {
         'coco_feature_json': os.path.join('assets', 'result.json'), #coco格式标记, 需要png图片, 在debug模式运行后, 会对进行切图仅保留被标记部分以减少图片大小
         'default_horizontal_variance': 0.002, #默认x偏移, 查找不传box的时候, 会根据coco坐标, match偏移box内的
