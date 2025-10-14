@@ -43,6 +43,19 @@ class FishingTask(SRTriggerTask):
         self._splash_finder_thread = None
         self._fish_pos_lock = threading.Lock()
 
+        self.regex_map = {
+            'chinese': {
+                'add_rod': re.compile('添加鱼竿'),
+                'continue_fishing': re.compile('继续钓鱼'),
+                'use': re.compile('使用'),
+            },
+            'english': {
+                'add_rod': re.compile('pole'),
+                'continue_fishing': re.compile('Continue fishing'),
+                'use': re.compile('Use'),
+            }
+        }
+
     def _splash_finder_worker(self):
         """
         异步查找水花的任务。
@@ -71,13 +84,13 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_start_time is not None and now - self.last_start_time <= 3:
             return False
-        if self.find_one("box_fishing_level", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96)):
+        if self._find_fishing_level():
             self.sleep(0.5)
             # 检查鱼竿是否损坏
-            if self.ocr(0.90, 0.92, 0.96, 0.96, match=re.compile('添加鱼竿')):
+            if self.ocr(0.90, 0.92, 0.96, 0.96, match=self.get_regex('add_rod')):
                 self.log_info('更换鱼竿', notify=False)
                 self.send_key(self.get_config_value('switch_rod_key'))
-                use_boxes = self.wait_ocr(box=None, match=re.compile('使用'), log=False, threshold=0.8, time_out=15)
+                use_boxes = self.wait_ocr(box=None, match=self.get_regex('use'), log=False, threshold=0.8, time_out=15)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
                     center = use_boxes[0].center()
@@ -112,7 +125,7 @@ class FishingTask(SRTriggerTask):
         now = time.time()
         if self.last_continue_time is not None and now - self.last_continue_time <= 1:
             return False
-        if self.ocr(0.79, 0.88, 0.87, 0.93, match=re.compile('继续钓鱼')):
+        if self._match_continue_fishing():
             self.log_info('点击继续钓鱼', notify=False)
             self.click(0.82, 0.90)
             self.last_continue_time = now
@@ -223,3 +236,16 @@ class FishingTask(SRTriggerTask):
         #     self.log_info(box, notify=False)
         #     self.screenshot('splash', show_box=True, frame_box=box)
         return ret
+
+    def _find_fishing_level(self):
+        if self.get_game_language() == 'chinese':
+            return self.find_one("box_fishing_level", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96))
+        else:
+            return self.find_one("box_fishing_level_eng", box=self.box_of_screen(0.56, 0.91, 0.60, 0.96))
+
+    def _match_continue_fishing(self):
+        lang = self.get_game_language()
+        if lang == 'chinese':
+            return self.ocr(0.79, 0.88, 0.87, 0.93, match=self.get_regex('continue_fishing'))
+        else:
+            return self.ocr(0.76, 0.88, 0.90, 0.93, match=self.get_regex('continue_fishing'))
