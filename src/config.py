@@ -9,7 +9,7 @@ version = "dev"
 key_config_option = ConfigOption(
     "游戏设置",
     {
-        "游戏语言": "国服",
+        "游戏语言": "中文",
     },
     description="游戏设置",
     config_type={
