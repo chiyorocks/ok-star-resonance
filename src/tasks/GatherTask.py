@@ -26,6 +26,8 @@ class GatherTask(SRTriggerTask):
         self.run_interval = 0
 
     def run(self):
+        lang = self.get_game_language()
+
         if time.time() - self.last_run_time < self.run_interval:
             return
 
@@ -33,7 +35,14 @@ class GatherTask(SRTriggerTask):
 
         self.last_run_time = time.time()
 
-        boxes = self.ocr(0.75, 0.5, 0.84, 0.61, match=re.compile('采集'))
+        if lang == 'chinese':
+            pattern1 = re.compile('采集')
+            pattern2_str = '专注'
+        else:
+            pattern1 = re.compile('Focused|Normal')
+            pattern2_str = 'Focused'
+
+        boxes = self.ocr(0.75, 0.5, 0.84, 0.61, match=pattern1)
 
         if not boxes:
             self.run_interval = 1
@@ -43,11 +52,11 @@ class GatherTask(SRTriggerTask):
 
         for i, box in enumerate(sorted_boxes):
             self.sleep(0.5)
-            if self.get_config_value('use_stamina') and re.search('专注', box.name):
+            if self.get_config_value('use_stamina') and re.search(pattern2_str, box.name):
                 self.send_key('f')
                 self.run_interval = 5.5
                 break
-            elif not self.get_config_value('use_stamina') and not re.search('专注', box.name):
+            elif not self.get_config_value('use_stamina') and not re.search(pattern2_str, box.name):
                 self.send_key('f')
                 self.run_interval = 5.5
                 break
