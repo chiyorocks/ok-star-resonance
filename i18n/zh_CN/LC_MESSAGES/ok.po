@@ -1,0 +1,46 @@
+﻿#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: you@example.com\n"
+"Last-Translator: you@example.com\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "English"
+msgstr "English"
+
+msgid "简体中文"
+msgstr "简体中文"
+
+msgid "Auto fish after interaction"
+msgstr "与钓鱼点交互后自动钓鱼"
+
+msgid "Use Focus"
+msgstr "使用专注采集"
+
+msgid "Gathering Key"
+msgstr "采集按键"
+
+msgid "Switch Pole Key"
+msgstr "切换鱼竿按键"
+
+msgid "Auto-click when the button appears. Please adjust angle for clear text."
+msgstr "自动点击屏幕上出现的采集按钮，注意调整角度使按钮上的文字清晰可见"
+
+msgid "Always Rapid Click"
+msgstr "无视鱼线张力直接连点"
+
+msgid "Game Settings"
+msgstr "游戏设置"
+
+msgid "Game Language"
+msgstr "游戏语言"
+
+msgid "Auto Gather"
+msgstr "自动采集"
+
+msgid "Auto Fish"
+msgstr "自动钓鱼"

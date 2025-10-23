@@ -8,19 +8,14 @@ class GatherTask(SRTriggerTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "自动采集"
-        self.description = "当屏幕上出现采集按钮后进行采集，注意调整角度使采集文字清晰可见"
+        self.name = "Auto Gather"
+        self.description = "Auto-click when the button appears. Please adjust angle for clear text."
         self.trigger_count = 0
 
-        self.settings = [
-            {'key': 'use_stamina', 'label': '使用专注采集', 'default': False}
-        ]
-
         self.default_config.update({
-            setting['label']: setting['default'] for setting in self.settings
+            'Use Focus': False,
+            'Gathering Key': 'f',
         })
-
-        self._settings_map = {s['key']: s for s in self.settings}
 
         self.last_run_time = 0
         self.run_interval = 0
@@ -52,12 +47,12 @@ class GatherTask(SRTriggerTask):
 
         for i, box in enumerate(sorted_boxes):
             self.sleep(0.5)
-            if self.get_config_value('use_stamina') and re.search(pattern2_str, box.name):
-                self.send_key('f')
+            if self.config.get('Use Focus') and re.search(pattern2_str, box.name):
+                self.send_key(self.config.get('Gathering Key'))
                 self.run_interval = 5.5
                 break
-            elif not self.get_config_value('use_stamina') and not re.search(pattern2_str, box.name):
-                self.send_key('f')
+            elif not self.config.get('Use Focus') and not re.search(pattern2_str, box.name):
+                self.send_key(self.config.get('Gathering Key'))
                 self.run_interval = 5.5
                 break
             else:

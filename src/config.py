@@ -7,15 +7,14 @@ version = "dev"
 
 
 key_config_option = ConfigOption(
-    "游戏设置",
+    "Game Settings",
     {
-        "游戏语言": "中文",
+        "Game Language": "简体中文",
     },
-    description="游戏设置",
     config_type={
-        "游戏语言": {
+        "Game Language": {
             "type": "drop_down",
-            "options": ["中文", "English"],
+            "options": ["简体中文", "English"],
         }
     },
 )
