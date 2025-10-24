@@ -3,5 +3,6 @@ uac: true
 profiles:
   - name: "Global"
     git_url: "https://github.com/chiyorocks/ok-star-resonance.git"
+    requires_python: "3.12"
     main_script: "main.py"
     requirements: "requirements.txt"
