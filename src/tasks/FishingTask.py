@@ -11,13 +11,19 @@ class FishingTask(SRTriggerTask):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Auto Fish"
-        self.description = "Auto fish after interaction"
+        self.name = "自动钓鱼"
+        self.description = "与钓鱼点交互后自动钓鱼"
+        
+        self.settings = [
+            {'key': 'ignore_tension_spam_click', 'label': '无视鱼线张力直接连点（减慢拉线速度,减少偶发的断线）', 'default': False},
+            {'key': 'switch_rod_key', 'label': '切换鱼竿按键', 'default': "m"}
+        ]
         
         self.default_config.update({
-            'Always Rapid Click': False,
-            'Switch Pole Key': 'm',
+            setting['label']: setting['default'] for setting in self.settings
         })
+        
+        self._settings_map = {s['key']: s for s in self.settings}
         
         self.trigger_count = 0
 
@@ -39,12 +45,12 @@ class FishingTask(SRTriggerTask):
 
         self.regex_map = {
             'chinese': {
-                'pole': re.compile('添加鱼竿'),
-                'continue_fishing': re.compile('继续钓鱼'),
+                'add_rod': re.compile('添加魚竿'),
+                'continue_fishing': re.compile('續'),
                 'use': re.compile('使用'),
             },
             'english': {
-                'pole': re.compile('pole'),
+                'add_rod': re.compile('pole'),
                 'continue_fishing': re.compile('Continue fishing'),
                 'use': re.compile('Use'),
             }
@@ -66,14 +72,14 @@ class FishingTask(SRTriggerTask):
         """
         if self._handle_minigame():
             return
-        if self._handle_start_and_pole_change():
+        if self._handle_start_and_rod_change():
             return
         if self._handle_hook_fish():
             return
         if self._handle_continue_fishing():
             return
 
-    def _handle_start_and_pole_change(self) -> bool:
+    def _handle_start_and_rod_change(self) -> bool:
         """检查初始的钓鱼界面，以便抛竿或更换损坏的鱼竿。"""
         now = time.time()
         if self.last_start_time is not None and now - self.last_start_time <= 3:
@@ -81,9 +87,9 @@ class FishingTask(SRTriggerTask):
         if self._find_fishing_level():
             self.sleep(0.5)
             # 检查鱼竿是否损坏
-            if self.ocr(0.90, 0.92, 0.96, 0.96, match=self.get_regex('pole')):
+            if self.ocr(0.90, 0.92, 0.96, 0.96, match=self.get_regex('add_rod')):
                 self.log_info('更换鱼竿', notify=False)
-                self.send_key(self.config.get('Switch Pole Key'))
+                self.send_key(self.get_config_value('switch_rod_key'))
                 use_boxes = self.wait_ocr(box=None, match=self.get_regex('use'), log=False, threshold=0.8, time_out=15)
                 if use_boxes:
                     self.log_info('点击使用鱼竿', notify=False)
@@ -130,7 +136,7 @@ class FishingTask(SRTriggerTask):
         """管理收线和溜鱼"""
         # 如果“鱼线张力”文本可见，则需要收线。
         if self.find_one("box_fishing_icon", box=self.box_of_screen(0.33, 0.80, 0.37, 0.87)):
-            if self.config.get('Always Rapid Click') or self.find_one("configbox_stop_pull", box=self.box_of_screen(0.50, 0.75, 0.70, 0.92), threshold=0.5):
+            if self.get_config_value('ignore_tension_spam_click') or self.find_one("box_stop_pull", box=self.box_of_screen(0.50, 0.75, 0.70, 0.92), threshold=0.5):
                 self.my_mouse_switch(0.5, 0.5)
             else:
                 self.my_mouse_down(0.5, 0.5)
@@ -154,7 +160,7 @@ class FishingTask(SRTriggerTask):
 
         normalized_fish_pos = min(max(fish_pos / 0.7, -1.3), 1.3)
 
-        self._update_buoy_position(delta_time)
+        self._update_rod_position(delta_time)
         self._update_key_presses(normalized_fish_pos)
 
     def _update_time(self) -> float:
@@ -189,7 +195,7 @@ class FishingTask(SRTriggerTask):
                 self.send_key_down('d')
                 self.key_d_pressed = True
 
-    def _update_buoy_position(self, delta_time: float):
+    def _update_rod_position(self, delta_time: float):
         """更新鱼竿的位置。"""
         # 未按任何键时，向中心点漂移
         if not self.key_a_pressed and not self.key_d_pressed:
@@ -240,6 +246,7 @@ class FishingTask(SRTriggerTask):
     def _match_continue_fishing(self):
         lang = self.get_game_language()
         if lang == 'chinese':
-            return self.ocr(0.79, 0.88, 0.87, 0.93, match=self.get_regex('continue_fishing'))
+            return self.ocr(0.76, 0.88, 0.90, 0.93, match=self.get_regex('continue_fishing'))
+            #return self.ocr(0.79, 0.88, 0.87, 0.93, match=self.get_regex('continue_fishing'))
         else:
             return self.ocr(0.76, 0.88, 0.90, 0.93, match=self.get_regex('continue_fishing'))
